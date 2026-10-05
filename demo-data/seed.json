@@ -1,0 +1,7 @@
+{
+  "seed": 20261031,
+  "projects": ["Project Alder", "Project Birch", "Project Cedar"],
+  "itemsPerProject": 8,
+  "baseDate": "2026-10-12",
+  "recordedAt": "2026-09-28T09:00:00Z"
+}

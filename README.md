@@ -10,6 +10,7 @@ You need Node.js (current LTS).
 
 ```sh
 node examples/01-canary-batch-readback/run.mjs
+node examples/05-portfolio-health-diff/run.mjs
 node --test
 ```
 
@@ -21,7 +22,7 @@ node --test
 | 02 | resumable-job | A long job that saves state after every item and resumes at the missing item after it is killed | Weeks 7 and 8 | Coming before the first Friday live session |
 | 03 | build-vs-run | When to have a model write a program once instead of paying for inference on every run | Week 3 | Coming |
 | 04 | versioned-skill-release | A skill registry with a release queue, readiness gates and a hash-checked install step | Weeks 3 and 7 | Coming before the first Friday live session |
-| 05 | portfolio-health-diff | Health computed from behavior, compared with self-reported status, with output only where they disagree | Weeks 2, 4, 5 and 6 | Coming before the first Friday live session |
+| 05 | [portfolio-health-diff](examples/05-portfolio-health-diff/) | Health computed from behaviour, reconciled against self-reported status, printing only the disagreements, plus the three ways the same tracker reports a different number | Weeks 2, 4, 5 and 6 | Available |
 
 ## Layout
 

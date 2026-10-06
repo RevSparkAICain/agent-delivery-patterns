@@ -70,7 +70,84 @@ export function generate(cfg = loadSeed()) {
   return { records, plan };
 }
 
-// `node demo-data/generate.mjs` prints the data set
+// ---------------------------------------------------------------------------
+// Portfolio data set, used by example 05. Kept separate from generate() above
+// so the two examples can evolve without moving each other's numbers.
+// ---------------------------------------------------------------------------
+
+// The six standard milestones every project is cut into.
+export const MILESTONES = ['Discovery', 'Design', 'Build', 'Test', 'Cutover', 'Benefits'];
+// "Blocked" means waiting on somebody else. Whether a workspace counts it as
+// started is a configuration choice, and example 05 shows what that costs.
+export const PORTFOLIO_STATUSES = ['Not started', 'In progress', 'Blocked', 'Done', 'Cancelled'];
+export const RAG = ['Green', 'Amber', 'Red'];
+// Some teams encode risk in the item title because the status field does not
+// carry what they mean. This is the convention they use.
+export const RISK_MARKER = '!! ';
+
+// Returns { asOf, items, reports }.
+//   items   - tracker items, each on one project milestone. due_date may be null,
+//             and due_history records every time the date was pushed out.
+//   reports - one self-reported RAG per project milestone, from its owner.
+export function generatePortfolio(cfg = loadSeed()) {
+  // Offset the seed so this data set is independent of generate()'s stream.
+  const r = rng(cfg.seed + 977);
+  const pick = (a) => a[Math.floor(r() * a.length)];
+  const asOf = '2026-11-16';
+  const items = [];
+  const reports = [];
+
+  for (const project of cfg.projects) {
+    const code = project.split(' ')[1].slice(0, 3).toUpperCase();
+    let n = 0;
+    for (const milestone of MILESTONES) {
+      for (let i = 0; i < 2 + Math.floor(r() * 3); i++) {
+        n++;
+        const status = pick(PORTFOLIO_STATUSES);
+        const open = status !== 'Done' && status !== 'Cancelled';
+        const start = addDays(cfg.baseDate, Math.floor(r() * 20));
+
+        // Due dates get pushed out. Each push is recorded, so drift is measurable.
+        const pushes = r() < 0.45 ? 1 + Math.floor(r() * 3) : 0;
+        let due = addDays(start, 10 + Math.floor(r() * 40));
+        const due_history = [];
+        for (let p = 0; p < pushes; p++) {
+          const next = addDays(due, 5 + Math.floor(r() * 20));
+          due_history.push({ from: due, to: next, moved_on: addDays(start, 3 + p * 7) });
+          due = next;
+        }
+
+        const title = (open && r() < 0.18 ? RISK_MARKER : '') + pick(TASKS);
+        items.push({
+          id: `${code}-${String(n).padStart(3, '0')}`,
+          project,
+          milestone,
+          title,
+          owner: pick(ROLES),
+          status,
+          points: pick([1, 2, 3, 5, 8, 13]),
+          start_date: start,
+          // A date nobody has confirmed stays blank by rule. Absence is data.
+          due_date: r() < 0.12 ? null : due,
+          due_history,
+          updated_at: addDays(asOf, -Math.floor(r() * 45)) + 'T09:00:00Z',
+        });
+      }
+
+      reports.push({
+        project,
+        milestone,
+        rag: pick(RAG),
+        reported_by: pick(ROLES),
+        as_of: asOf,
+      });
+    }
+  }
+  return { asOf, items, reports };
+}
+
+// `node demo-data/generate.mjs` prints the data set, `--portfolio` the example 05 one
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  console.log(JSON.stringify(generate(), null, 2));
+  const data = process.argv.includes('--portfolio') ? generatePortfolio() : generate();
+  console.log(JSON.stringify(data, null, 2));
 }
